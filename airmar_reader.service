@@ -1,0 +1,14 @@
+[Unit]
+Description=Airmar 150WX Sensor Reader
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /opt/airmar_reader/airmar_reader.py
+WorkingDirectory=/opt/airmar_reader
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target
