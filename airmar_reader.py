@@ -359,7 +359,11 @@ def weatherparsing(client):
             if msg.sentence_type == "MDA":
                 if msg.b_pressure_bar is not None:
                     # Pressure
-                    pressure = {"barometric_pressure": float(msg.b_pressure_bar) * 1000}
+                    pressure = {
+                        "barometric_pressure": round(
+                            float(msg.b_pressure_bar) * 1000, 2
+                        )
+                    }
                     # print(f"Presure {pressure}")
                     client.publish(
                         f"{discovery_prefix}/sensor/{client_id}/mdab/state",
@@ -461,12 +465,16 @@ def weatherparsing(client):
                     if msg.lat_dir == "S":  # Zuidelijke breedtegraden zijn negatief
                         lat_decimal = -lat_decimal
 
+                    lat_decimal = round(lat_decimal, 5)
+
                     # Omzetten van lengtegraad naar decimale graden
                     lon_degrees = float(msg.lon[:3])
                     lon_minutes = float(msg.lon[3:])
                     lon_decimal = lon_degrees + (lon_minutes / 60)
                     if msg.lon_dir == "W":  # Westelijke lengtegraden zijn negatief
                         lon_decimal = -lon_decimal
+
+                    lon_decimal = round(lon_decimal, 5)
 
                     # Publiceren van de omgezette waarden
                     lat = {"lat": lat_decimal}
