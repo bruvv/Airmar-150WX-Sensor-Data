@@ -1,6 +1,6 @@
-# Airmar-150WX-Sensor-Data
+# Airmar 150WX Python script for home assistant with mqtt autodiscovery
 
-Airmar 150WX Sensor Data
+Python script that runs on any linux machine, it uses USB to listen to the airmar and parses that data and pushes it to MQTT. If you have home assistant auto discovery will work for this.
 
 ## Requirments
 
