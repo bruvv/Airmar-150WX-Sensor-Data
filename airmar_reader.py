@@ -9,25 +9,25 @@ from paho.mqtt import client as mqtt_client
 # MQTT configuration
 broker = "x.x.x.x"  # Replace with your MQTT broker address
 port = 1883  # Replace with your MQTT broker port
-client_id = "weatherstationairmax"  # the client id you want to use, can be anything
-username = "xxxxx"  # your mqtt username
-password = "xxxxx"  # your mqtt password
+client_id = "xxx"  # the client id you want to use, can be anything
+username = "xxx"  # your mqtt username
+password = "xxx"  # your mqtt password
 discovery_prefix = "homeassistant"  # Default discovery prefix for Home Assistant do not change this unless you know what you are doing
 
 
 def publish_discovery_config(client):
+    # Barometric Pressure
     mdab_config = {
         "name": "Barometric Pressure",
         "device_class": "atmospheric_pressure",
         "unique_id": "mda_barometric_pressure",
-        "icon": "mdi:weather-sunny",
-        "unit_of_measurement": "bar",
-        "suggested_display_precision": 0,
+        "icon": "mdi:weather-tornado",
+        "suggested_display_precision": 1,
         "state_topic": f"{discovery_prefix}/sensor/{client_id}/mdab/state",
         "value_template": "{{ value_json.barometric_pressure }}",
         "device": {
             "identifiers": ["airmar150wx"],
-            "name": "Airmar",
+            "name": "Airmar 150WX Weatherstation",
             "model": "150WX",
             "manufacturer": "AirMar",
         },
@@ -37,19 +37,20 @@ def publish_discovery_config(client):
         json.dumps(mdab_config),
         retain=True,
     )
-    # MDA - Meteorological Composite Data
+
+    # Temperature
     mdat_config = {
         "name": "Temperature",
         "device_class": "temperature",
         "unique_id": "mda_barometric_temperature",
-        "icon": "mdi:weather-sunny",
+        "icon": "mdi:temperature-celsius",
         "unit_of_measurement": "°C",
         "suggested_display_precision": 2,
         "state_topic": f"{discovery_prefix}/sensor/{client_id}/mdat/state",
         "value_template": "{{ value_json.air_temperature }}",
         "device": {
             "identifiers": ["airmar150wx"],
-            "name": "Airmar",
+            "name": "Airmar 150WX Weatherstation",
             "model": "150WX",
             "manufacturer": "AirMar",
         },
@@ -59,19 +60,20 @@ def publish_discovery_config(client):
         json.dumps(mdat_config),
         retain=True,
     )
-    # MDA - Meteorological Composite Data
+
+    # Relative humidity
     mdah_config = {
         "name": "Relative humidity",
         "device_class": "humidity",
         "unique_id": "mda_barometric_humidity",
-        "icon": "mdi:weather-sunny",
+        "icon": "mdi:cloud-percent",
         "unit_of_measurement": "%",
         "suggested_display_precision": 2,
         "state_topic": f"{discovery_prefix}/sensor/{client_id}/mdah/state",
         "value_template": "{{ value_json.rel_humidity }}",
         "device": {
             "identifiers": ["airmar150wx"],
-            "name": "Airmar",
+            "name": "Airmar 150WX Weatherstation",
             "model": "150WX",
             "manufacturer": "AirMar",
         },
@@ -82,18 +84,19 @@ def publish_discovery_config(client):
         retain=True,
     )
 
+    # Dew point
     mdadp_config = {
         "name": "Dew point",
         "device_class": "humidity",
         "unique_id": "mda_barometric_dew_point",
-        "icon": "mdi:weather-sunny",
+        "icon": "mdi:thermometer-water",
         "unit_of_measurement": "°C",
         "suggested_display_precision": 2,
         "state_topic": f"{discovery_prefix}/sensor/{client_id}/mdadp/state",
         "value_template": "{{ value_json.dew_point }}",
         "device": {
             "identifiers": ["airmar150wx"],
-            "name": "Airmar",
+            "name": "Airmar 150WX Weatherstation",
             "model": "150WX",
             "manufacturer": "AirMar",
         },
@@ -104,40 +107,19 @@ def publish_discovery_config(client):
         retain=True,
     )
 
-    hdt_config = {
-        "name": "Heading",
-        "device_class": "timestamp",
-        "unique_id": "hdt_heading",
-        "icon": "mdi:weather-sunny",
-        "unit_of_measurement": "°",
-        "suggested_display_precision": 0,
-        "state_topic": f"{discovery_prefix}/sensor/{client_id}/hdt/state",
-        "value_template": "{{ value_json.heading }}",
-        "device": {
-            "identifiers": ["airmar150wx"],
-            "name": "Airmar",
-            "model": "150WX",
-            "manufacturer": "AirMar",
-        },
-    }
-    client.publish(
-        f"{discovery_prefix}/sensor/{client_id}/hdt/config",
-        json.dumps(hdt_config),
-        retain=True,
-    )
-
+    # Wind Speed
     wsp_config = {
         "name": "Wind Speed",
         "device_class": "wind_speed",
         "unique_id": "wsp",
-        "icon": "mdi:weather-sunny",
+        "icon": "mdi:windsock",
         "unit_of_measurement": "m/s",
         "suggested_display_precision": 2,
         "state_topic": f"{discovery_prefix}/sensor/{client_id}/wsp/state",
         "value_template": "{{ value_json.wind_speed }}",
         "device": {
             "identifiers": ["airmar150wx"],
-            "name": "Airmar",
+            "name": "Airmar 150WX Weatherstation",
             "model": "150WX",
             "manufacturer": "AirMar",
         },
@@ -148,18 +130,18 @@ def publish_discovery_config(client):
         retain=True,
     )
 
+    # Wind Angle
     wsa_config = {
         "name": "Wind Angle",
-        "device_class": "wind_speed",
         "unique_id": "wsa",
-        "icon": "mdi:weather-sunny",
+        "icon": "mdi:angle-acute",
         "unit_of_measurement": "∠",
         "suggested_display_precision": 0,
         "state_topic": f"{discovery_prefix}/sensor/{client_id}/wsa/state",
         "value_template": "{{ value_json.wind_angle }}",
         "device": {
             "identifiers": ["airmar150wx"],
-            "name": "Airmar",
+            "name": "Airmar 150WX Weatherstation",
             "model": "150WX",
             "manufacturer": "AirMar",
         },
@@ -170,11 +152,205 @@ def publish_discovery_config(client):
         retain=True,
     )
 
+    # Timestamp
+    # timestamp_config = {
+    #     "name": "Timestamp",
+    #     "device_class": "timestamp",
+    #     "unique_id": "timestamp_gps",
+    #     "icon": "mdi:weather-sunny",
+    #     "suggested_display_precision": 0,
+    #     "state_topic": f"{discovery_prefix}/sensor/{client_id}/timestamp/state",
+    #     "value_template": "{{ value_json.datetime.time }}",
+    #     "device": {
+    #         "identifiers": ["airmar150wx"],
+    #         "name": "Airmar 150WX Weatherstation",
+    #         "model": "150WX",
+    #         "manufacturer": "AirMar",
+    #     },
+    # }
+    # client.publish(
+    #     f"{discovery_prefix}/sensor/{client_id}/timestamp/config",
+    #     json.dumps(timestamp_config),
+    #     retain=True,
+    # )
+
+    # GPS Day
+    gps_day = {
+        "name": "GPS Day",
+        "unique_id": "gps_day",
+        "icon": "mdi:calendar-today",
+        "suggested_display_precision": 0,
+        "state_topic": f"{discovery_prefix}/sensor/{client_id}/day/state",
+        "value_template": "{{ value_json.day }}",
+        "device": {
+            "identifiers": ["airmar150wx"],
+            "name": "Airmar 150WX Weatherstation",
+            "model": "150WX",
+            "manufacturer": "AirMar",
+        },
+    }
+    client.publish(
+        f"{discovery_prefix}/sensor/{client_id}/day/config",
+        json.dumps(gps_day),
+        retain=True,
+    )
+
+    # GPS Month
+    gps_month_config = {
+        "name": "GPS Month",
+        "unique_id": "gps_month",
+        "icon": "mdi:calendar-today",
+        "suggested_display_precision": 0,
+        "state_topic": f"{discovery_prefix}/sensor/{client_id}/month/state",
+        "value_template": "{{ value_json.month }}",
+        "device": {
+            "identifiers": ["airmar150wx"],
+            "name": "Airmar 150WX Weatherstation",
+            "model": "150WX",
+            "manufacturer": "AirMar",
+        },
+    }
+    client.publish(
+        f"{discovery_prefix}/sensor/{client_id}/month/config",
+        json.dumps(gps_month_config),
+        retain=True,
+    )
+
+    # GPS Year
+    gps_year_config = {
+        "name": "GPS Year",
+        "unique_id": "gps_year",
+        "icon": "mdi:calendar-today",
+        "suggested_display_precision": 0,
+        "state_topic": f"{discovery_prefix}/sensor/{client_id}/year/state",
+        "value_template": "{{ value_json.year }}",
+        "device": {
+            "identifiers": ["airmar150wx"],
+            "name": "Airmar 150WX Weatherstation",
+            "model": "150WX",
+            "manufacturer": "AirMar",
+        },
+    }
+    client.publish(
+        f"{discovery_prefix}/sensor/{client_id}/year/config",
+        json.dumps(gps_year_config),
+        retain=True,
+    )
+
+    # GPS lat
+    gps_lat_config = {
+        "name": "GPS latitude",
+        "unique_id": "gps_lat",
+        "icon": "mdi:crosshairs-gps",
+        "suggested_display_precision": 4,
+        "state_topic": f"{discovery_prefix}/sensor/{client_id}/lat/state",
+        "value_template": "{{ value_json.lat }}",
+        "device": {
+            "identifiers": ["airmar150wx"],
+            "name": "Airmar 150WX Weatherstation",
+            "model": "150WX",
+            "manufacturer": "AirMar",
+        },
+    }
+    client.publish(
+        f"{discovery_prefix}/sensor/{client_id}/lat/config",
+        json.dumps(gps_lat_config),
+        retain=True,
+    )
+
+    # GPS lon
+    gps_lot_config = {
+        "name": "GPS longitude",
+        # "device_class": "timestamp",
+        "unique_id": "gps_lon",
+        "icon": "mdi:crosshairs-gps",
+        "suggested_display_precision": 4,
+        "state_topic": f"{discovery_prefix}/sensor/{client_id}/lon/state",
+        "value_template": "{{ value_json.lon }}",
+        "device": {
+            "identifiers": ["airmar150wx"],
+            "name": "Airmar 150WX Weatherstation",
+            "model": "150WX",
+            "manufacturer": "AirMar",
+        },
+    }
+    client.publish(
+        f"{discovery_prefix}/sensor/{client_id}/lon/config",
+        json.dumps(gps_lot_config),
+        retain=True,
+    )
+
+    # gps_qual
+    gps_qual_config = {
+        "name": "GPS Quality",
+        "unique_id": "gps_qual",
+        "icon": "mdi:satellite",
+        "suggested_display_precision": 0,
+        "state_topic": f"{discovery_prefix}/sensor/{client_id}/gps_qual/state",
+        "value_template": "{{ value_json.gps_qual }}",
+        "device": {
+            "identifiers": ["airmar150wx"],
+            "name": "Airmar 150WX Weatherstation",
+            "model": "150WX",
+            "manufacturer": "AirMar",
+        },
+    }
+    client.publish(
+        f"{discovery_prefix}/sensor/{client_id}/gps_qual/config",
+        json.dumps(gps_qual_config),
+        retain=True,
+    )
+
+    # GPS num_sats
+    gps_num_sats_config = {
+        "name": "GPS Number of Satellites",
+        "unique_id": "num_sats",
+        "icon": "mdi:satellite-uplink",
+        "suggested_display_precision": 0,
+        "state_topic": f"{discovery_prefix}/sensor/{client_id}/num_sats/state",
+        "value_template": "{{ value_json.num_sats }}",
+        "device": {
+            "identifiers": ["airmar150wx"],
+            "name": "Airmar 150WX Weatherstation",
+            "model": "150WX",
+            "manufacturer": "AirMar",
+        },
+    }
+    client.publish(
+        f"{discovery_prefix}/sensor/{client_id}/num_sats/config",
+        json.dumps(gps_num_sats_config),
+        retain=True,
+    )
+
+    # GPS altitude
+    gps_altitude_config = {
+        "name": "GPS Altitude",
+        "unique_id": "altitude",
+        "device_class": "distance",
+        "unit_of_measurement": "m",
+        "icon": "mdi:altimeter",
+        "suggested_display_precision": 1,
+        "state_topic": f"{discovery_prefix}/sensor/{client_id}/altitude/state",
+        "value_template": "{{ value_json.altitude }}",
+        "device": {
+            "identifiers": ["airmar150wx"],
+            "name": "Airmar 150WX Weatherstation",
+            "model": "150WX",
+            "manufacturer": "AirMar",
+        },
+    }
+    client.publish(
+        f"{discovery_prefix}/sensor/{client_id}/altitude/config",
+        json.dumps(gps_altitude_config),
+        retain=True,
+    )
+
 
 def weatherparsing(client):
     publish_discovery_config(client)
     ser = serial.Serial("/dev/ttyUSB0", 4800, timeout=5.0)
     sio = io.TextIOWrapper(io.BufferedRWPair(ser, ser))
+    print("INFO :: Starting parsing")
     while True:
         try:
             line = sio.readline()
@@ -183,7 +359,7 @@ def weatherparsing(client):
             if msg.sentence_type == "MDA":
                 if msg.b_pressure_bar is not None:
                     # Pressure
-                    pressure = {"barometric_pressure": float(msg.b_pressure_bar)}
+                    pressure = {"barometric_pressure": float(msg.b_pressure_bar) * 1000}
                     # print(f"Presure {pressure}")
                     client.publish(
                         f"{discovery_prefix}/sensor/{client_id}/mdab/state",
@@ -215,15 +391,15 @@ def weatherparsing(client):
                         json.dumps(dew_point),
                         retain=False,
                     )
-            if msg.sentence_type == "HDT":
-                if msg.heading is not None:
-                    hdt = {"heading": float(msg.heading)}
-                    # print(f"Heading {hdt}")
-                    client.publish(
-                        f"{discovery_prefix}/sensor/{client_id}/hdt/state",
-                        json.dumps(hdt),
-                        retain=False,
-                    )
+            # if msg.sentence_type == "HDT":
+            #     if msg.heading is not None:
+            #         hdt = {"heading": float(msg.heading)}
+            #         # print(f"Heading {hdt}")
+            #         client.publish(
+            #             f"{discovery_prefix}/sensor/{client_id}/hdt/state",
+            #             json.dumps(hdt),
+            #             retain=False,
+            #         )
             if msg.sentence_type == "MWV":
                 if msg.wind_speed is not None:
                     wsp = {
@@ -242,68 +418,100 @@ def weatherparsing(client):
                         retain=False,
                     )
             if msg.sentence_type == "ZDA":
-                timestamp = {"timestamp": msg.timestamp}
+                timestamp = {msg.timestamp}
+                # print(timestamp, day, month, year)
                 day = {"day": msg.day}
+                if msg.day is not None:
+                    client.publish(
+                        f"{discovery_prefix}/sensor/{client_id}/day/state",
+                        json.dumps(day),
+                        retain=False,
+                    )
                 month = {"month": msg.month}
+                if msg.month is not None:
+                    client.publish(
+                        f"{discovery_prefix}/sensor/{client_id}/month/state",
+                        json.dumps(month),
+                        retain=False,
+                    )
                 year = {"year": msg.year}
-                local_zone = {"local_zone": msg.local_zone}
-                print(timestamp, day, month, year, local_zone)
-                # client.publish(
-                #     f"{discovery_prefix}/sensor/{client_id}/timestamp/state",
-                #     json.dumps(timestamp),
-                #     retain=False,
-                # )
-                # client.publish(
-                #     f"{discovery_prefix}/sensor/{client_id}/day/state",
-                #     json.dumps(day),
-                #     retain=False,
-                # )
-                # client.publish(
-                #     f"{discovery_prefix}/sensor/{client_id}/month/state",
-                #     json.dumps(month),
-                #     retain=False,
-                # )
-                # client.publish(
-                #     f"{discovery_prefix}/sensor/{client_id}/year/state",
-                #     json.dumps(year),
-                #     retain=False,
-                # )
-                # client.publish(
-                #     f"{discovery_prefix}/sensor/{client_id}/local_zone/state",
-                #     json.dumps(local_zone),
-                #     retain=False,
-                # )
-            if msg.sentence_type == "VTG":
-                true_track = {"true_track": msg.true_track}
-                mag_track = {"mag_track": msg.mag_track}
-                spd_over_grnd_kmph = {"spd_over_grnd_kmph": msg.spd_over_grnd_kmph}
-                print(true_track, mag_track, spd_over_grnd_kmph)
-                # client.publish(
-                #     f"{discovery_prefix}/sensor/{client_id}/timestamp/state",
-                #     json.dumps(timestamp),
-                #     retain=False,
-                # )
+                if msg.year is not None:
+                    client.publish(
+                        f"{discovery_prefix}/sensor/{client_id}/year/state",
+                        json.dumps(year),
+                        retain=False,
+                    )
+            # if msg.sentence_type == "VTG":
+            #     true_track = {"true_track": msg.true_track}
+            #     mag_track = {"mag_track": msg.mag_track}
+            #     spd_over_grnd_kmph = {"spd_over_grnd_kmph": msg.spd_over_grnd_kmph}
+            #     print(true_track, mag_track, spd_over_grnd_kmph)
+            #     client.publish(
+            #         f"{discovery_prefix}/sensor/{client_id}/timestamp/state",
+            #         json.dumps(timestamp),
+            #         retain=False,
+            #     )
             if msg.sentence_type == "GGA":
-                lat = {"lat": msg.lat}
-                lon = {"lon": msg.lon}
+                # print(lat, lon, gps_qual, num_sats, altitude)
+                if msg.lat and msg.lat_dir and msg.lon and msg.lon_dir:
+                    # Omzetten van breedtegraad naar decimale graden
+                    lat_degrees = float(msg.lat[:2])
+                    lat_minutes = float(msg.lat[2:])
+                    lat_decimal = lat_degrees + (lat_minutes / 60)
+                    if msg.lat_dir == "S":  # Zuidelijke breedtegraden zijn negatief
+                        lat_decimal = -lat_decimal
+
+                    # Omzetten van lengtegraad naar decimale graden
+                    lon_degrees = float(msg.lon[:3])
+                    lon_minutes = float(msg.lon[3:])
+                    lon_decimal = lon_degrees + (lon_minutes / 60)
+                    if msg.lon_dir == "W":  # Westelijke lengtegraden zijn negatief
+                        lon_decimal = -lon_decimal
+
+                    # Publiceren van de omgezette waarden
+                    lat = {"lat": lat_decimal}
+                    client.publish(
+                        f"{discovery_prefix}/sensor/{client_id}/lat/state",
+                        json.dumps(lat),
+                        retain=False,
+                    )
+
+                    lon = {"lon": lon_decimal}
+                    client.publish(
+                        f"{discovery_prefix}/sensor/{client_id}/lon/state",
+                        json.dumps(lon),
+                        retain=False,
+                    )
                 gps_qual = {"gps_qual": msg.gps_qual}
+                if msg.gps_qual is not None:
+                    client.publish(
+                        f"{discovery_prefix}/sensor/{client_id}/gps_qual/state",
+                        json.dumps(gps_qual),
+                        retain=False,
+                    )
                 num_sats = {"num_sats": msg.num_sats}
+                if msg.num_sats is not None:
+                    client.publish(
+                        f"{discovery_prefix}/sensor/{client_id}/num_sats/state",
+                        json.dumps(num_sats),
+                        retain=False,
+                    )
                 altitude = {"altitude": msg.altitude}
-                print(lat, lon, gps_qual, num_sats, altitude)
-                # client.publish(
-                #     f"{discovery_prefix}/sensor/{client_id}/timestamp/state",
-                #     json.dumps(timestamp),
-                #     retain=False,
-                # )
+                if msg.altitude is not None:
+                    client.publish(
+                        f"{discovery_prefix}/sensor/{client_id}/altitude/state",
+                        json.dumps(altitude),
+                        retain=False,
+                    )
 
         except serial.SerialException as e:
-            print(f"Device error: {e}")
+            print(f"ERROR :: Device error: {e}")
             break
         except pynmea2.ParseError as e:
-            print(f"Parse error: {e}")
+            print(f"ERROR :: Parse error: {e}")
             continue
         except UnicodeDecodeError as e:
-            print(f"Unicode Decode error: {e}")
+            print(f"ERROR :: Unicode Decode error: {e}")
             break
 
 
