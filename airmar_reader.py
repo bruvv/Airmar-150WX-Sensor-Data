@@ -1,5 +1,7 @@
 import io
 import json
+import logging
+import subprocess
 import time
 
 import pynmea2
@@ -13,6 +15,13 @@ client_id = "xxx"  # the client id you want to use, can be anything
 username = "xxx"  # your mqtt username
 password = "xxx"  # your mqtt password
 discovery_prefix = "homeassistant"  # Default discovery prefix for Home Assistant do not change this unless you know what you are doing
+
+# Logging config
+logging.basicConfig(
+    filename="/var/log/airmar_reader.log",
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+)
 
 
 def publish_discovery_config(client):
@@ -350,7 +359,7 @@ def weatherparsing(client):
     publish_discovery_config(client)
     ser = serial.Serial("/dev/ttyUSB0", 4800, timeout=5.0)
     sio = io.TextIOWrapper(io.BufferedRWPair(ser, ser))
-    print("INFO :: Starting parsing")
+    logging.info("Starting parsing")
     while True:
         try:
             line = sio.readline()
@@ -513,22 +522,22 @@ def weatherparsing(client):
                     )
 
         except serial.SerialException as e:
-            print(f"ERROR :: Device error: {e}")
+            logging.error(f"Device error: {e}")
             break
         except pynmea2.ParseError as e:
-            print(f"ERROR :: Parse error: {e}")
+            logging.error(f"Parse error: {e}")
             continue
         except UnicodeDecodeError as e:
-            print(f"ERROR :: Unicode Decode error: {e}")
+            logging.error(f"Unicode Decode error: {e}")
             break
 
 
 def connect_mqtt():
     def on_connect(client, userdata, flags, rc):
         if rc == 0:
-            print("INFO :: Connected to MQTT Broker")
+            logging.info("Connected to MQTT Broker")
         else:
-            print("ERROR :: Connection failed:", rc)
+            logging.error("Connection failed:", rc)
             exit(0)
 
     client = mqtt_client.Client(client_id)
@@ -538,14 +547,37 @@ def connect_mqtt():
     return client
 
 
+def check_internet(retry_interval=5, total_wait_time=30):
+    """Probeert om een host te pingen binnen een gegeven tijd."""
+    end_time = time.time() + total_wait_time
+    while time.time() < end_time:
+        try:
+            # Probeert de host te pingen.
+            response = subprocess.run(
+                ["ping", "-c", "1", broker],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            if response.returncode == 0:
+                logging.info(f"MQTT connection {broker} detected.")
+                return True
+            else:
+                logging.error(f"No MQTT connection to {broker} detected. Retrying...")
+        except Exception as e:
+            logging.error(f"Ping error: {e}")
+        time.sleep(retry_interval)
+    logging.error("Failed to connect to MQTT broker.")
+    return False
+
+
 def run():
     try:
+        client = connect_mqtt()
+        client.loop_start()
         while True:
-            client = connect_mqtt()
-            client.loop_start()
             weatherparsing(client)
     except KeyboardInterrupt:
-        print("Program interrupted. Exiting...")
+        logging.info("Program interrupted. Exiting...")
         client.loop_stop()
         time.sleep(1)
         client.disconnect()
@@ -554,4 +586,7 @@ def run():
 
 
 if __name__ == "__main__":
-    run()
+    if check_internet():
+        run()
+    else:
+        logging.error("No internet, cannot start internet")
