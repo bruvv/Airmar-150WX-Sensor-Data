@@ -548,7 +548,6 @@ def connect_mqtt():
 
 
 def check_internet(retry_interval=5, total_wait_time=30):
-    """Probeert om een host te pingen binnen een gegeven tijd."""
     end_time = time.time() + total_wait_time
     while time.time() < end_time:
         try:
@@ -559,10 +558,12 @@ def check_internet(retry_interval=5, total_wait_time=30):
                 stderr=subprocess.DEVNULL,
             )
             if response.returncode == 0:
-                logging.info(f"MQTT connection {broker} detected.")
+                logging.info(f"MQTT broker connection {broker} detected.")
                 return True
             else:
-                logging.error(f"No MQTT connection to {broker} detected. Retrying...")
+                logging.error(
+                    f"No MQTT broker connection to {broker} detected. Retrying..."
+                )
         except Exception as e:
             logging.error(f"Ping error: {e}")
         time.sleep(retry_interval)
@@ -589,4 +590,4 @@ if __name__ == "__main__":
     if check_internet():
         run()
     else:
-        logging.error("No internet, cannot start internet")
+        logging.error("No mqtt connection, cannot start program")
