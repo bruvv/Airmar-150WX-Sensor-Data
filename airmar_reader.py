@@ -3,6 +3,7 @@ import json
 import logging
 import subprocess
 import time
+from datetime import datetime, timedelta
 
 import pynmea2
 import serial
@@ -136,6 +137,29 @@ def publish_discovery_config(client):
     client.publish(
         f"{discovery_prefix}/sensor/{client_id}/mwv_wsp/config",
         json.dumps(wsp_config),
+        retain=True,
+    )
+
+    # Wind Speed 5 min gemiddelde
+    wspd_config = {
+        "name": "Wind Speed 5 min average",
+        "device_class": "wind_speed",
+        "unique_id": "wspm",
+        "icon": "mdi:windsock",
+        "unit_of_measurement": "m/s",
+        "suggested_display_precision": 2,
+        "state_topic": f"{discovery_prefix}/sensor/{client_id}/wspmedian5min/state",
+        "value_template": "{{ value_json.wind_speed_median_5min }}",
+        "device": {
+            "identifiers": ["airmar150wx"],
+            "name": "Airmar 150WX Weatherstation",
+            "model": "150WX",
+            "manufacturer": "AirMar",
+        },
+    }
+    client.publish(
+        f"{discovery_prefix}/sensor/{client_id}/mwv_wspmedian5min/config",
+        json.dumps(wspd_config),
         retain=True,
     )
 
@@ -360,6 +384,11 @@ def weatherparsing(client):
     ser = serial.Serial("/dev/ttyUSB0", 4800, timeout=5.0)
     sio = io.TextIOWrapper(io.BufferedRWPair(ser, ser))
     logging.info("Starting parsing")
+
+    wind_speed_sum = 0
+    wind_speed_samplecount = 0
+    previousWindSpeedTimer = datetime.now()
+
     while True:
         try:
             line = sio.readline()
@@ -416,13 +445,36 @@ def weatherparsing(client):
             if msg.sentence_type == "MWV":
                 if msg.wind_speed is not None:
                     wsp = {
-                        "wind_speed": float(msg.wind_speed) * 0.514444
+                        "wind_speed": round(float(msg.wind_speed) * 0.514444, 2)
                     }  # convert from kn to ms
                     client.publish(
                         f"{discovery_prefix}/sensor/{client_id}/wsp/state",
                         json.dumps(wsp),
                         retain=False,
                     )
+                    # Convert from knots to meters per second and store the value
+                    wind_speed_mps = float(msg.wind_speed) * 0.514444
+                    wind_speed_sum += wind_speed_mps
+                    wind_speed_samplecount += 1
+
+                    now = datetime.now()
+
+                    # Calculate and publish the median if we have enough data
+                    if now - previousWindSpeedTimer > timedelta(minutes=5):
+                        previousWindSpeedTimer = now
+
+                        avg_windspeed = wind_speed_sum / wind_speed_samplecount
+
+                        print(
+                            f"{datetime.now()} gemiddelde snelheid, {round(avg_windspeed, 2)}"
+                        )
+                        median_wsp = {"wind_speed_median_5min": round(avg_windspeed, 2)}
+                        client.publish(
+                            f"{discovery_prefix}/sensor/{client_id}/wspmedian5min/state",
+                            json.dumps(median_wsp),
+                            retain=False,
+                        )
+
                 if msg.wind_angle is not None:
                     wsa = {"wind_angle": float(msg.wind_angle)}
                     client.publish(
@@ -431,8 +483,8 @@ def weatherparsing(client):
                         retain=False,
                     )
             if msg.sentence_type == "ZDA":
-                timestamp = {msg.timestamp}
-                # print(timestamp, day, month, year)
+                # timestamp = {msg.timestamp}
+                # print(timestamp)
                 day = {"day": msg.day}
                 if msg.day is not None:
                     client.publish(

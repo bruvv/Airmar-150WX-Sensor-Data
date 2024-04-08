@@ -3,7 +3,6 @@
 Python script that runs on any linux machine, it uses USB to listen to the airmar and parses that data and pushes it to MQTT. If you have home assistant auto discovery will work for this.
 <img width="472" alt="image" src="https://github.com/bruvv/Airmar-150WX-Sensor-Data/assets/3063928/94f61b3d-7de3-4934-a6fc-39c6f0911f11">
 
-
 ## Requirments
 
 sudo apt install python3-nmea2 python3-serial python3-paho-mqtt
