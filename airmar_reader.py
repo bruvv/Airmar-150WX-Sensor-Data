@@ -4,6 +4,7 @@ import logging
 import subprocess
 import time
 from datetime import datetime, timedelta
+from logging.handlers import RotatingFileHandler
 
 import pynmea2
 import serial
@@ -19,9 +20,15 @@ discovery_prefix = "homeassistant"  # Default discovery prefix for Home Assistan
 
 # Logging config
 logging.basicConfig(
-    filename="/var/log/airmar_reader.log",
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler("/var/log/airmar_reader.log"),
+        RotatingFileHandler(
+            "/var/log/airmar_reader.log", maxBytes=1048576, backupCount=3
+        ),
+        logging.StreamHandler(),
+    ],
 )
 
 
@@ -148,8 +155,8 @@ def publish_discovery_config(client):
         "icon": "mdi:windsock",
         "unit_of_measurement": "m/s",
         "suggested_display_precision": 2,
-        "state_topic": f"{discovery_prefix}/sensor/{client_id}/wspmedian5min/state",
-        "value_template": "{{ value_json.wind_speed_median_5min }}",
+        "state_topic": f"{discovery_prefix}/sensor/{client_id}/wspmean5min/state",
+        "value_template": "{{ value_json.wind_speed_mean_5min }}",
         "device": {
             "identifiers": ["airmar150wx"],
             "name": "Airmar 150WX Weatherstation",
@@ -158,7 +165,7 @@ def publish_discovery_config(client):
         },
     }
     client.publish(
-        f"{discovery_prefix}/sensor/{client_id}/mwv_wspmedian5min/config",
+        f"{discovery_prefix}/sensor/{client_id}/mwv_wspmean5min/config",
         json.dumps(wspd_config),
         retain=True,
     )
@@ -182,6 +189,28 @@ def publish_discovery_config(client):
     client.publish(
         f"{discovery_prefix}/sensor/{client_id}/mwv_wsa/config",
         json.dumps(wsa_config),
+        retain=True,
+    )
+
+    # Wind Angle 5 min gemiddelde
+    wspaa_config = {
+        "name": "Wind Angle 5 min average",
+        "unique_id": "wspaa",
+        "icon": "mdi:angle-acute",
+        "unit_of_measurement": "∠",
+        "suggested_display_precision": 0,
+        "state_topic": f"{discovery_prefix}/sensor/{client_id}/wspaamean5min/state",
+        "value_template": "{{ value_json.wind_angle_mean_5min }}",
+        "device": {
+            "identifiers": ["airmar150wx"],
+            "name": "Airmar 150WX Weatherstation",
+            "model": "150WX",
+            "manufacturer": "AirMar",
+        },
+    }
+    client.publish(
+        f"{discovery_prefix}/sensor/{client_id}/mwv_wspaamean5min/config",
+        json.dumps(wspaa_config),
         retain=True,
     )
 
@@ -387,6 +416,8 @@ def weatherparsing(client):
 
     wind_speed_sum = 0
     wind_speed_samplecount = 0
+    wind_angle_sum = 0
+    wind_angle_samplecount = 0
     previousWindSpeedTimer = datetime.now()
 
     while True:
@@ -459,19 +490,18 @@ def weatherparsing(client):
 
                     now = datetime.now()
 
-                    # Calculate and publish the median if we have enough data
                     if now - previousWindSpeedTimer > timedelta(minutes=5):
                         previousWindSpeedTimer = now
 
                         avg_windspeed = wind_speed_sum / wind_speed_samplecount
-
-                        print(
-                            f"{datetime.now()} gemiddelde snelheid, {round(avg_windspeed, 2)}"
+                        logging.debug(
+                            f"{datetime.now()} average wind snelheid, {round(avg_windspeed, 2)}"
                         )
-                        median_wsp = {"wind_speed_median_5min": round(avg_windspeed, 2)}
+
+                        mean_wsp = {"wind_speed_mean_5min": round(avg_windspeed, 2)}
                         client.publish(
-                            f"{discovery_prefix}/sensor/{client_id}/wspmedian5min/state",
-                            json.dumps(median_wsp),
+                            f"{discovery_prefix}/sensor/{client_id}/wspmean5min/state",
+                            json.dumps(mean_wsp),
                             retain=False,
                         )
 
@@ -482,6 +512,27 @@ def weatherparsing(client):
                         json.dumps(wsa),
                         retain=False,
                     )
+                    wind_angle_mps = float(msg.wind_angle)
+                    wind_angle_sum += wind_angle_mps
+                    wind_angle_samplecount += 1
+
+                    now = datetime.now()
+
+                    if now - previousWindSpeedTimer > timedelta(minutes=5):
+                        previousWindSpeedTimer = now
+
+                        avg_windangle = wind_angle_sum / wind_angle_samplecount
+
+                        logging.debug(
+                            f"{datetime.now()} average wind angle, {round(avg_windangle, 2)}"
+                        )
+                        mean_wsp = {"wind_angle_mean_5min": round(avg_windangle, 2)}
+                        client.publish(
+                            f"{discovery_prefix}/sensor/{client_id}/wspaamean5min/state",
+                            json.dumps(mean_wsp),
+                            retain=False,
+                        )
+
             if msg.sentence_type == "ZDA":
                 # timestamp = {msg.timestamp}
                 # print(timestamp)
