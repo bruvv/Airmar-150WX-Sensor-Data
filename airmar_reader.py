@@ -416,9 +416,10 @@ def weatherparsing(client):
 
     wind_speed_sum = 0
     wind_speed_samplecount = 0
+    previousWindSpeedTimer = datetime.now()
     wind_angle_sum = 0
     wind_angle_samplecount = 0
-    previousWindSpeedTimer = datetime.now()
+    previousWindAngleTimer = datetime.now()
 
     while True:
         try:
@@ -518,18 +519,18 @@ def weatherparsing(client):
 
                     now = datetime.now()
 
-                    if now - previousWindSpeedTimer > timedelta(minutes=5):
-                        previousWindSpeedTimer = now
+                    if now - previousWindAngleTimer > timedelta(minutes=5):
+                        previousWindAngleTimer = now
 
                         avg_windangle = wind_angle_sum / wind_angle_samplecount
 
                         logging.debug(
-                            f"{datetime.now()} average wind angle, {round(avg_windangle, 2)}"
+                            f"{datetime.now()} average wind angle, {round(avg_windangle, 0)}"
                         )
-                        mean_wsp = {"wind_angle_mean_5min": round(avg_windangle, 2)}
+                        mean_wsaa = {"wind_angle_mean_5min": round(avg_windangle, 0)}
                         client.publish(
                             f"{discovery_prefix}/sensor/{client_id}/wspaamean5min/state",
-                            json.dumps(mean_wsp),
+                            json.dumps(mean_wsaa),
                             retain=False,
                         )
 
