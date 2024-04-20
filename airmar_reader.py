@@ -506,6 +506,11 @@ def weatherparsing(client):
                             retain=False,
                         )
 
+                        # reset the timer
+                        wind_speed_sum = 0
+                        wind_speed_samplecount = 0
+                        previousWindSpeedTimer = now
+
                 if msg.wind_angle is not None:
                     wsa = {"wind_angle": float(msg.wind_angle)}
                     client.publish(
@@ -533,6 +538,11 @@ def weatherparsing(client):
                             json.dumps(mean_wsaa),
                             retain=False,
                         )
+
+                        # reset the timer
+                        wind_angle_sum = 0
+                        wind_angle_samplecount = 0
+                        previousWindAngleTimer = now
 
             if msg.sentence_type == "ZDA":
                 # timestamp = {msg.timestamp}
