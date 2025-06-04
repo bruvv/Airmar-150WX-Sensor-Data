@@ -321,7 +321,7 @@ def publish_discovery_config(client):
     )
 
     # GPS lon
-    gps_lot_config = {
+    gps_lon_config = {
         "name": "GPS longitude",
         # "device_class": "timestamp",
         "unique_id": "gps_lon",
@@ -338,7 +338,7 @@ def publish_discovery_config(client):
     }
     client.publish(
         f"{discovery_prefix}/sensor/{client_id}/lon/config",
-        json.dumps(gps_lot_config),
+        json.dumps(gps_lon_config),
         retain=True,
     )
 
