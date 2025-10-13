@@ -651,7 +651,7 @@ def connect_mqtt():
         if rc == 0:
             logging.info("Connected to MQTT Broker")
         else:
-            logging.error("Connection failed:", rc)
+            logging.error("Connection failed: %s", rc)
             exit(0)
 
     client = mqtt_client.Client(client_id)
